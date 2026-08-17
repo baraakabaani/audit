@@ -8,7 +8,8 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-dist
+# dist is committed so Railway can serve the pre-built frontend
+# dist
 dist-ssr
 *.local
 
