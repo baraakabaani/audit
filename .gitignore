@@ -1,0 +1,21 @@
+# Database (contains engagement data — do not commit)
+audit.db
+
+# Uploaded files (may contain client data)
+uploads/
+outputs/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# Node
+frontend/node_modules/
+# Keep dist (Railway needs the pre-built frontend)
+# frontend/dist/
+
+# OS
+.DS_Store
+Thumbs.db
