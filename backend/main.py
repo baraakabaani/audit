@@ -49,8 +49,8 @@ init_db()
 # Debug: print env var status at startup
 _groq_key = os.getenv("GROQ_API_KEY", "")
 print(f"[STARTUP] GROQ_API_KEY present={bool(_groq_key)}, length={len(_groq_key)}")
-groq_related = [k for k in os.environ if "GROQ" in k.upper()]
-print(f"[STARTUP] GROQ-related env vars found: {groq_related}")
+all_env_keys = sorted(os.environ.keys())
+print(f"[STARTUP] All env var keys: {all_env_keys}")
 
 
 @app.get("/health")
