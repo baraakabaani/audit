@@ -128,6 +128,9 @@ def classify_account_ai(account: dict) -> Optional[dict]:
         }
 
     except Exception as exc:
+        import traceback
+        print(f"[GROQ ERROR] classify_account_ai failed for {account.get('account_code')}: {exc}")
+        traceback.print_exc()
         return None
 
 

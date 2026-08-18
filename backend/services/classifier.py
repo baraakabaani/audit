@@ -59,10 +59,14 @@ def classify_all_accounts(engagement_id: int, use_ai: bool = True) -> list[dict]
         results.append(record)
 
     # ── AI enhancement for low-confidence accounts ───────────────────────────
-    if use_ai and low_conf_accounts and os.getenv("GROQ_API_KEY"):
+    key_present = bool(os.getenv("GROQ_API_KEY"))
+    print(f"[GROQ] use_ai={use_ai}, low_conf={len(low_conf_accounts)}, key_present={key_present}")
+    if use_ai and low_conf_accounts and key_present:
+        print(f"[GROQ] Starting AI classification for {len(low_conf_accounts)} low-confidence accounts")
         try:
             from backend.ai.groq_client import classify_account_ai
             for acc, existing in low_conf_accounts:
+                print(f"[GROQ] Classifying {acc.get('account_code')} - {acc.get('account_name')}")
                 ai_result = classify_account_ai(acc)
                 if ai_result and ai_result["confidence"] > existing["confidence"]:
                     # Update the record in results
@@ -80,8 +84,10 @@ def classify_all_accounts(engagement_id: int, use_ai: bool = True) -> list[dict]
                                 "source": "AI",
                             })
                             break
-        except Exception:
-            pass  # AI failed — use rule results
+        except Exception as e:
+            import traceback
+            print(f"[GROQ ERROR] AI classification batch failed: {e}")
+            traceback.print_exc()
 
     # ── Persist to DB ─────────────────────────────────────────────────────────
     conn = get_conn()
