@@ -46,10 +46,17 @@ app.include_router(router, prefix="/api")
 
 init_db()
 
+# Debug: print env var status at startup
+_groq_key = os.getenv("GROQ_API_KEY", "")
+print(f"[STARTUP] GROQ_API_KEY present={bool(_groq_key)}, length={len(_groq_key)}")
+groq_related = [k for k in os.environ if "GROQ" in k.upper()]
+print(f"[STARTUP] GROQ-related env vars found: {groq_related}")
+
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    groq_key = os.getenv("GROQ_API_KEY", "")
+    return {"status": "ok", "groq_key_present": bool(groq_key), "groq_key_length": len(groq_key)}
 
 
 # ── Serve React frontend (built files) ───────────────────────────────────────
