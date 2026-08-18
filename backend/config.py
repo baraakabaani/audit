@@ -2,9 +2,11 @@ import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).parent.parent
-UPLOADS_DIR = BASE_DIR / "uploads"
-OUTPUTS_DIR = BASE_DIR / "outputs"
-DB_PATH = BASE_DIR / "audit.db"
+# Use Railway persistent volume if available
+_data_dir = Path("/data") if Path("/data").exists() else BASE_DIR
+UPLOADS_DIR = _data_dir / "uploads"
+OUTPUTS_DIR = _data_dir / "outputs"
+DB_PATH = _data_dir / "audit.db"
 
 UPLOADS_DIR.mkdir(exist_ok=True)
 OUTPUTS_DIR.mkdir(exist_ok=True)

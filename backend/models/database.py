@@ -3,7 +3,10 @@ import json
 from pathlib import Path
 from datetime import datetime
 
-DB_PATH = Path(__file__).parent.parent.parent / "audit.db"
+import os as _os
+# Use Railway persistent volume if available, otherwise local
+_data_dir = Path("/data") if Path("/data").exists() else Path(__file__).parent.parent.parent
+DB_PATH = _data_dir / "audit.db"
 
 
 def get_conn():
