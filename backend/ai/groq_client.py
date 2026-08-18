@@ -13,15 +13,20 @@ from groq import Groq
 _client: Optional[Groq] = None
 
 
+def get_groq_api_key() -> str:
+    key = os.getenv("GROQ_API_KEY", "")
+    if not key:
+        from backend.models.database import get_setting
+        key = get_setting("GROQ_API_KEY")
+    return key
+
+
 def get_client() -> Groq:
     global _client
-    if _client is None:
-        api_key = os.getenv("GROQ_API_KEY", "")
-        if not api_key:
-            raise RuntimeError(
-                "GROQ_API_KEY environment variable not set. "
-                "Get a free key at https://console.groq.com"
-            )
+    api_key = get_groq_api_key()
+    if not api_key:
+        raise RuntimeError("GROQ_API_KEY not set. Add it in the app Settings page.")
+    if _client is None or True:  # always refresh in case key was just saved
         _client = Groq(api_key=api_key)
     return _client
 

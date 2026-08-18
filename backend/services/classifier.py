@@ -59,7 +59,9 @@ def classify_all_accounts(engagement_id: int, use_ai: bool = True) -> list[dict]
         results.append(record)
 
     # ── AI enhancement for low-confidence accounts ───────────────────────────
-    key_present = bool(os.getenv("GROQ_API_KEY"))
+    from backend.ai.groq_client import get_groq_api_key
+    groq_key = get_groq_api_key()
+    key_present = bool(groq_key)
     print(f"[GROQ] use_ai={use_ai}, low_conf={len(low_conf_accounts)}, key_present={key_present}")
     if use_ai and low_conf_accounts and key_present:
         print(f"[GROQ] Starting AI classification for {len(low_conf_accounts)} low-confidence accounts")

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getEngagements, createEngagement, type Engagement } from './api';
+import { getEngagements, createEngagement, type Engagement, BASE } from './api';
 import EngagementDashboard from './components/EngagementDashboard';
 import './App.css';
 
@@ -10,10 +10,46 @@ export default function App() {
   const [newName, setNewName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showSettings, setShowSettings] = useState(false);
+  const [groqKey, setGroqKey] = useState('');
+  const [groqStatus, setGroqStatus] = useState<{configured: boolean, source: string} | null>(null);
+  const [settingsSaving, setSettingsSaving] = useState(false);
+  const [settingsMsg, setSettingsMsg] = useState('');
 
   useEffect(() => {
     loadEngagements();
+    loadGroqStatus();
   }, []);
+
+  async function loadGroqStatus() {
+    try {
+      const r = await fetch(`${BASE}/settings/groq-key`);
+      if (r.ok) setGroqStatus(await r.json());
+    } catch { /* ignore */ }
+  }
+
+  async function saveGroqKey() {
+    setSettingsSaving(true);
+    setSettingsMsg('');
+    try {
+      const r = await fetch(`${BASE}/settings/groq-key`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ api_key: groqKey }),
+      });
+      const data = await r.json();
+      if (r.ok) {
+        setSettingsMsg('Groq API key saved successfully.');
+        setGroqKey('');
+        await loadGroqStatus();
+      } else {
+        setSettingsMsg(data.detail || 'Failed to save key.');
+      }
+    } catch {
+      setSettingsMsg('Error saving key.');
+    }
+    setSettingsSaving(false);
+  }
 
   async function loadEngagements() {
     try {
@@ -64,8 +100,40 @@ export default function App() {
       <main className="main-content">
         <div className="page-header">
           <h2>Engagements</h2>
-          <button className="btn-primary" onClick={() => setCreating(true)}>+ New Engagement</button>
+          <div style={{display:'flex',gap:'8px'}}>
+            <button className="btn-secondary" onClick={() => setShowSettings(s => !s)}>
+              {groqStatus?.configured ? '✓ AI Ready' : '⚙ Setup AI'}
+            </button>
+            <button className="btn-primary" onClick={() => setCreating(true)}>+ New Engagement</button>
+          </div>
         </div>
+
+        {showSettings && (
+          <div className="card mb-4">
+            <h3 className="card-title">Groq AI Settings</h3>
+            <p style={{fontSize:'0.85rem',color:'#666',marginBottom:'12px'}}>
+              Enter your free Groq API key to enable AI account classification.
+              Get one at <strong>console.groq.com</strong> → API Keys.
+              {groqStatus && <span style={{marginLeft:'8px',color: groqStatus.configured ? '#16a34a' : '#dc2626'}}>
+                {groqStatus.configured ? `✓ Key configured (source: ${groqStatus.source})` : '✗ No key configured'}
+              </span>}
+            </p>
+            <div style={{display:'flex',gap:'8px'}}>
+              <input
+                className="input"
+                style={{flex:1}}
+                type="password"
+                placeholder="gsk_..."
+                value={groqKey}
+                onChange={e => setGroqKey(e.target.value)}
+              />
+              <button className="btn-primary" onClick={saveGroqKey} disabled={settingsSaving || !groqKey}>
+                {settingsSaving ? 'Saving…' : 'Save Key'}
+              </button>
+            </div>
+            {settingsMsg && <p style={{marginTop:'8px',color: settingsMsg.includes('success') ? '#16a34a' : '#dc2626'}}>{settingsMsg}</p>}
+          </div>
+        )}
 
         {error && <div className="alert alert-error">{error}</div>}
 

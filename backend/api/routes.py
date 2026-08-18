@@ -14,7 +14,7 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Background
 from fastapi.responses import FileResponse
 
 from backend.config import OUTPUTS_DIR
-from backend.models.database import get_conn, init_db
+from backend.models.database import get_conn, init_db, get_setting, set_setting
 from backend.models.schemas import (
     EngagementCreate, EngagementUpdate, MappingUpdate, BulkApprove, GenerateRequest
 )
@@ -488,3 +488,23 @@ def download_validation_report(eid: int):
     wb.save(str(out_path))
     return FileResponse(str(out_path), filename=f"Validation Report - Engagement {eid}.xlsx",
                         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+
+# ── App Settings ──────────────────────────────────────────────────────────────
+
+@router.get("/settings/groq-key")
+def get_groq_key_status():
+    from backend.ai.groq_client import get_groq_api_key
+    key = get_groq_api_key()
+    return {"configured": bool(key), "source": "env" if __import__("os").getenv("GROQ_API_KEY") else ("db" if key else "none")}
+
+
+@router.post("/settings/groq-key")
+def save_groq_key(body: dict):
+    key = body.get("api_key", "").strip()
+    if not key:
+        raise HTTPException(400, "API key cannot be empty")
+    if not key.startswith("gsk_"):
+        raise HTTPException(400, "Invalid Groq API key format — should start with gsk_")
+    set_setting("GROQ_API_KEY", key)
+    return {"ok": True, "message": "Groq API key saved successfully"}

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Works whether served from localhost or a remote server
-const BASE = `${window.location.origin}/api`;
+export const BASE = `${window.location.origin}/api`;
 
 export const api = axios.create({ baseURL: BASE });
 

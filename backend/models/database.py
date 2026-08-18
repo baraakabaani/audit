@@ -119,7 +119,31 @@ def init_db():
         metadata_json TEXT,
         created_at    TEXT DEFAULT (datetime('now'))
     );
+
+    CREATE TABLE IF NOT EXISTS app_settings (
+        key   TEXT PRIMARY KEY,
+        value TEXT NOT NULL,
+        updated_at TEXT DEFAULT (datetime('now'))
+    );
     """)
+    conn.commit()
+    conn.close()
+
+
+def get_setting(key: str) -> str:
+    conn = get_conn()
+    row = conn.execute("SELECT value FROM app_settings WHERE key=?", (key,)).fetchone()
+    conn.close()
+    return row["value"] if row else ""
+
+
+def set_setting(key: str, value: str) -> None:
+    conn = get_conn()
+    conn.execute(
+        "INSERT INTO app_settings(key, value, updated_at) VALUES(?,?,datetime('now')) "
+        "ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
+        (key, value)
+    )
     conn.commit()
     conn.close()
 
